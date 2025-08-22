@@ -31,10 +31,15 @@ const symptoms: Symptom[] = [
     icon: "🌡️",
     questions: [
       { id: "fever-high", text: "Is your temperature over 103°F (39.4°C)?", isRedFlag: true },
-      { id: "fever-breathing", text: "Are you having trouble breathing?", isRedFlag: true },
-      { id: "fever-confusion", text: "Are you feeling confused or disoriented?", isRedFlag: true },
-      { id: "fever-severe", text: "Do you have severe headache with neck stiffness?" },
-      { id: "fever-days", text: "Have you had fever for more than 3 days?" }
+      { id: "fever-breathing", text: "Are you having trouble breathing or shortness of breath?", isRedFlag: true },
+      { id: "fever-confusion", text: "Are you feeling confused, disoriented, or unusually drowsy?", isRedFlag: true },
+      { id: "fever-rash", text: "Do you have a purple or red rash that doesn't fade when pressed?", isRedFlag: true },
+      { id: "fever-severe-headache", text: "Do you have severe headache with neck stiffness or light sensitivity?" },
+      { id: "fever-vomiting", text: "Are you unable to keep fluids down due to persistent vomiting?" },
+      { id: "fever-duration", text: "Have you had fever for more than 3 days?" },
+      { id: "fever-chills", text: "Are you experiencing severe chills or shaking?" },
+      { id: "fever-dehydration", text: "Are you showing signs of dehydration (dizziness, dry mouth, little/no urination)?" },
+      { id: "fever-activities", text: "Is the fever preventing you from normal daily activities?" }
     ]
   },
   {
@@ -42,11 +47,17 @@ const symptoms: Symptom[] = [
     name: "Cough",
     icon: "🤧",
     questions: [
-      { id: "cough-breathing", text: "Are you having severe difficulty breathing?", isRedFlag: true },
-      { id: "cough-blood", text: "Are you coughing up blood?", isRedFlag: true },
-      { id: "cough-chest", text: "Do you have severe chest pain?", isRedFlag: true },
-      { id: "cough-fever", text: "Do you have a high fever with the cough?" },
-      { id: "cough-persistent", text: "Has the cough lasted more than 2 weeks?" }
+      { id: "cough-breathing", text: "Are you having severe difficulty breathing or can't catch your breath?", isRedFlag: true },
+      { id: "cough-blood", text: "Are you coughing up blood or pink/bloody phlegm?", isRedFlag: true },
+      { id: "cough-chest-pain", text: "Do you have severe, sharp chest pain that worsens with breathing?", isRedFlag: true },
+      { id: "cough-blue-lips", text: "Are your lips, face, or fingernails turning blue?", isRedFlag: true },
+      { id: "cough-high-fever", text: "Do you have a high fever (over 101°F) with the cough?" },
+      { id: "cough-wheezing", text: "Are you wheezing or making whistling sounds when breathing?" },
+      { id: "cough-persistent", text: "Has the cough lasted more than 2 weeks?" },
+      { id: "cough-night", text: "Is the cough keeping you awake at night?" },
+      { id: "cough-thick-mucus", text: "Are you coughing up thick, colored mucus (yellow, green, or brown)?" },
+      { id: "cough-talking", text: "Is it difficult to speak in full sentences due to coughing?" },
+      { id: "cough-activities", text: "Does the cough prevent you from normal activities or exercise?" }
     ]
   },
   {
@@ -54,11 +65,17 @@ const symptoms: Symptom[] = [
     name: "Headache",
     icon: "🤕",
     questions: [
-      { id: "headache-sudden", text: "Did the headache start suddenly and severely?", isRedFlag: true },
-      { id: "headache-vision", text: "Are you experiencing vision changes or confusion?", isRedFlag: true },
-      { id: "headache-neck", text: "Do you have neck stiffness with the headache?", isRedFlag: true },
-      { id: "headache-severe", text: "Is this the worst headache you've ever had?" },
-      { id: "headache-frequent", text: "Are you having frequent headaches (daily)?" }
+      { id: "headache-sudden", text: "Did the headache start suddenly and is it the worst you've ever had?", isRedFlag: true },
+      { id: "headache-vision", text: "Are you experiencing vision changes, confusion, or difficulty speaking?", isRedFlag: true },
+      { id: "headache-neck", text: "Do you have neck stiffness that prevents you from touching chin to chest?", isRedFlag: true },
+      { id: "headache-fever-rash", text: "Do you have fever with headache and a rash?", isRedFlag: true },
+      { id: "headache-weakness", text: "Do you have weakness, numbness, or tingling in arms/legs?" },
+      { id: "headache-nausea", text: "Are you experiencing severe nausea and vomiting with the headache?" },
+      { id: "headache-light", text: "Does light or noise make your headache much worse?" },
+      { id: "headache-frequent", text: "Are you having headaches more than 3 times per week?" },
+      { id: "headache-medication", text: "Are you taking pain medication for headaches more than 2 days per week?" },
+      { id: "headache-sleep", text: "Is the headache affecting your sleep or waking you up?" },
+      { id: "headache-pattern", text: "Has your headache pattern changed significantly recently?" }
     ]
   },
   {
@@ -66,11 +83,17 @@ const symptoms: Symptom[] = [
     name: "Stomach Pain",
     icon: "🤮",
     questions: [
-      { id: "stomach-severe", text: "Is the pain severe and constant?", isRedFlag: true },
-      { id: "stomach-blood", text: "Are you vomiting blood or having bloody stools?", isRedFlag: true },
-      { id: "stomach-fever", text: "Do you have high fever with abdominal pain?" },
-      { id: "stomach-eating", text: "Are you unable to keep food or liquids down?" },
-      { id: "stomach-days", text: "Has the pain lasted more than 2 days?" }
+      { id: "stomach-severe", text: "Is the pain severe, constant, and prevents you from moving normally?", isRedFlag: true },
+      { id: "stomach-blood", text: "Are you vomiting blood, coffee-ground material, or having bloody/black stools?", isRedFlag: true },
+      { id: "stomach-rigid", text: "Is your abdomen rigid or board-like when touched?", isRedFlag: true },
+      { id: "stomach-signs", text: "Do you have signs of severe dehydration (dizziness, no urination, dry mouth)?", isRedFlag: true },
+      { id: "stomach-high-fever", text: "Do you have high fever (over 101°F) with abdominal pain?" },
+      { id: "stomach-location", text: "Is the pain localized to the lower right side of your abdomen?" },
+      { id: "stomach-eating", text: "Are you unable to keep food or liquids down for more than 24 hours?" },
+      { id: "stomach-bowel", text: "Have you had no bowel movement for more than 3 days with pain?" },
+      { id: "stomach-duration", text: "Has the pain been constant for more than 6 hours?" },
+      { id: "stomach-movement", text: "Does movement, coughing, or walking make the pain much worse?" },
+      { id: "stomach-appetite", text: "Have you completely lost your appetite for more than 2 days?" }
     ]
   },
   {
@@ -78,11 +101,17 @@ const symptoms: Symptom[] = [
     name: "Minor Injury",
     icon: "🩹",
     questions: [
-      { id: "injury-bleeding", text: "Is there uncontrolled bleeding?", isRedFlag: true },
-      { id: "injury-bone", text: "Do you suspect a broken bone?", isRedFlag: true },
-      { id: "injury-head", text: "Did you hit your head and feel confused?", isRedFlag: true },
-      { id: "injury-movement", text: "Are you unable to move the injured area?" },
-      { id: "injury-swelling", text: "Is there significant swelling or bruising?" }
+      { id: "injury-bleeding", text: "Is there uncontrolled bleeding that won't stop with direct pressure?", isRedFlag: true },
+      { id: "injury-bone", text: "Do you suspect a broken bone or can you see bone through the wound?", isRedFlag: true },
+      { id: "injury-head", text: "Did you hit your head and are now confused, nauseous, or have vision changes?", isRedFlag: true },
+      { id: "injury-circulation", text: "Is the injured area cold, blue, or numb indicating poor circulation?", isRedFlag: true },
+      { id: "injury-deep", text: "Is the cut deep enough that you can see fat, muscle, or it won't stay closed?" },
+      { id: "injury-movement", text: "Are you unable to move the injured area normally?" },
+      { id: "injury-swelling", text: "Is there significant swelling that's getting worse?" },
+      { id: "injury-pain", text: "Is the pain severe and not relieved by over-the-counter pain medication?" },
+      { id: "injury-infection", text: "Are there signs of infection (red streaks, pus, warm to touch, fever)?" },
+      { id: "injury-mechanism", text: "Was this a high-impact injury (fall from height, car accident, sports collision)?" },
+      { id: "injury-function", text: "Is the injury preventing you from normal daily activities?" }
     ]
   }
 ];
