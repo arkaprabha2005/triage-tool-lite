@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Phone, MapPin, Home, RotateCcw } from "lucide-react";
+import { AlertTriangle, Phone, MapPin, Home, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export type Symptom = {
@@ -117,13 +117,25 @@ const symptoms: Symptom[] = [
 ];
 
 const getResult = (answers: Record<string, boolean>, symptomId: string): Result => {
-  const hasRedFlag = Object.entries(answers).some(([questionId, answer]) => {
-    const symptom = symptoms.find(s => s.id === symptomId);
-    const question = symptom?.questions.find(q => q.id === questionId);
-    return answer && question?.isRedFlag;
-  });
+  const symptom = symptoms.find(s => s.id === symptomId);
+  if (!symptom) return {
+    level: "selfcare",
+    title: "Self-Care Recommended", 
+    description: "Unable to assess symptoms properly.",
+    actions: ["Consult healthcare provider if symptoms persist"]
+  };
 
-  if (hasRedFlag) {
+  // Count red flag answers
+  const redFlagCount = symptom.questions
+    .filter(q => q.isRedFlag)
+    .filter(q => answers[q.id] === true)
+    .length;
+
+  // Count total yes answers
+  const yesCount = Object.values(answers).filter(Boolean).length;
+
+  // Emergency if any red flag
+  if (redFlagCount > 0) {
     return {
       level: "emergency",
       title: "URGENT: Call Emergency Now",
@@ -132,28 +144,27 @@ const getResult = (answers: Record<string, boolean>, symptomId: string): Result 
     };
   }
 
-  const yesCount = Object.values(answers).filter(Boolean).length;
-  
-  if (yesCount >= 3) {
+  // Assess based on total yes answers
+  if (yesCount >= 6) {
     return {
       level: "urgent",
       title: "Seek Urgent Care",
-      description: "Your symptoms suggest you should be seen by a healthcare provider soon.",
-      actions: ["Visit urgent care within 24 hours", "Monitor your symptoms closely", "Call if symptoms worsen"]
+      description: "Your symptoms suggest you should be seen by a healthcare provider within 24 hours.",
+      actions: ["Visit urgent care or emergency room within 24 hours", "Monitor your symptoms closely", "Call if symptoms worsen"]
     };
-  } else if (yesCount >= 1) {
+  } else if (yesCount >= 3) {
     return {
       level: "clinic",
       title: "Visit Campus Clinic",
-      description: "You should schedule an appointment with the campus health center.",
-      actions: ["Make an appointment during business hours", "Rest and stay hydrated", "Monitor your symptoms"]
+      description: "You should schedule an appointment with the campus health center within 1-3 days.",
+      actions: ["Make an appointment during business hours", "Rest and stay hydrated", "Monitor your symptoms", "Return if symptoms worsen"]
     };
   } else {
     return {
       level: "selfcare",
       title: "Self-Care Recommended",
-      description: "Your symptoms can likely be managed with self-care.",
-      actions: ["Get plenty of rest", "Stay hydrated", "Use over-the-counter medications as needed"]
+      description: "Your symptoms can likely be managed with self-care at home.",
+      actions: ["Get plenty of rest", "Stay hydrated", "Use over-the-counter medications as needed", "See a provider if symptoms persist or worsen"]
     };
   }
 };
@@ -164,7 +175,16 @@ const SymptomChecker: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [result, setResult] = useState<Result | null>(null);
+  const [showQuestion, setShowQuestion] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (currentStep === "questions") {
+      setShowQuestion(false);
+      const timer = setTimeout(() => setShowQuestion(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentQuestionIndex, currentStep]);
 
   const handleSymptomSelect = (symptom: Symptom) => {
     setSelectedSymptom(symptom);
@@ -180,18 +200,11 @@ const SymptomChecker: React.FC = () => {
     const newAnswers = { ...answers, [currentQuestion.id]: answer };
     setAnswers(newAnswers);
 
-    // Check for red flag
-    if (answer && currentQuestion.isRedFlag) {
-      const emergencyResult = getResult(newAnswers, selectedSymptom.id);
-      setResult(emergencyResult);
-      setCurrentStep("result");
-      return;
-    }
-
-    // Move to next question or show result
+    // Always continue to next question (don't stop on red flags)
     if (currentQuestionIndex < selectedSymptom.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
+      // All questions answered, show result
       const finalResult = getResult(newAnswers, selectedSymptom.id);
       setResult(finalResult);
       setCurrentStep("result");
@@ -204,6 +217,7 @@ const SymptomChecker: React.FC = () => {
     setCurrentQuestionIndex(0);
     setAnswers({});
     setResult(null);
+    setShowQuestion(false);
   };
 
   const handleEmergencyCall = () => {
@@ -221,16 +235,16 @@ const SymptomChecker: React.FC = () => {
   if (currentStep === "welcome") {
     return (
       <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md animate-scale-in">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 text-6xl">🏥</div>
-            <CardTitle className="text-2xl">Student Health Checker</CardTitle>
-            <CardDescription>Quick symptom assessment tool</CardDescription>
+            <div className="mx-auto mb-4 text-6xl animate-bounce-gentle">🏥</div>
+            <CardTitle className="text-2xl animate-fade-in">Student Health Checker</CardTitle>
+            <CardDescription className="animate-fade-in">Quick symptom assessment tool</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
+            <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg animate-fade-in">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mt-0.5 flex-shrink-0 animate-pulse-slow" />
                 <div className="text-sm">
                   <p className="font-medium mb-1">Important Disclaimer</p>
                   <p className="text-muted-foreground">
@@ -241,7 +255,7 @@ const SymptomChecker: React.FC = () => {
             </div>
             <Button 
               onClick={() => setCurrentStep("symptoms")} 
-              className="w-full" 
+              className="w-full transition-all duration-300 hover:scale-105" 
               size="lg"
             >
               Start Assessment
@@ -256,24 +270,27 @@ const SymptomChecker: React.FC = () => {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-md mx-auto">
-          <Card>
+          <Card className="animate-scale-in">
             <CardHeader className="text-center">
-              <CardTitle>Select Your Primary Symptom</CardTitle>
-              <CardDescription>Choose the symptom that concerns you most</CardDescription>
+              <CardTitle className="animate-fade-in">Select Your Primary Symptom</CardTitle>
+              <CardDescription className="animate-fade-in">Choose the symptom that concerns you most</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {symptoms.map((symptom) => (
+              {symptoms.map((symptom, index) => (
                 <Button
                   key={symptom.id}
                   variant="outline"
-                  className="w-full justify-start h-auto p-4"
+                  className="w-full justify-start h-auto p-4 transition-all duration-300 hover:scale-105 hover:shadow-md animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
                   onClick={() => handleSymptomSelect(symptom)}
                 >
-                  <span className="text-2xl mr-3">{symptom.icon}</span>
+                  <span className="text-2xl mr-3 animate-bounce-gentle" style={{ animationDelay: `${index * 200}ms` }}>
+                    {symptom.icon}
+                  </span>
                   <span className="text-left">{symptom.name}</span>
                 </Button>
               ))}
-              <Button variant="ghost" onClick={handleRestart} className="w-full mt-4">
+              <Button variant="ghost" onClick={handleRestart} className="w-full mt-4 transition-all duration-300 hover:scale-105">
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Back to Start
               </Button>
@@ -287,13 +304,14 @@ const SymptomChecker: React.FC = () => {
   if (currentStep === "questions" && selectedSymptom) {
     const currentQuestion = selectedSymptom.questions[currentQuestionIndex];
     const progress = ((currentQuestionIndex + 1) / selectedSymptom.questions.length) * 100;
+    const answeredQuestions = Object.keys(answers).length;
 
     return (
       <div className="min-h-screen bg-background p-4 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">{selectedSymptom.icon}</span>
+              <span className="text-2xl animate-bounce-gentle">{selectedSymptom.icon}</span>
               <div>
                 <CardTitle className="text-lg">{selectedSymptom.name}</CardTitle>
                 <CardDescription>
@@ -301,33 +319,71 @@ const SymptomChecker: React.FC = () => {
                 </CardDescription>
               </div>
             </div>
-            <div className="w-full bg-secondary rounded-full h-2">
+            
+            {/* Enhanced Progress Bar */}
+            <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
               <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                className="bg-gradient-to-r from-primary to-accent h-3 rounded-full transition-all duration-500 ease-out" 
                 style={{ width: `${progress}%` }}
               />
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-center">
-              <p className="text-lg font-medium mb-4">{currentQuestion.text}</p>
+            
+            {/* Question Counter Visual */}
+            <div className="flex justify-center gap-1 mt-2">
+              {selectedSymptom.questions.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index < currentQuestionIndex + 1 
+                      ? 'bg-primary scale-110' 
+                      : 'bg-muted scale-75'
+                  }`}
+                />
+              ))}
             </div>
-            <div className="grid grid-cols-2 gap-3">
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <div className={`text-center transition-all duration-500 ${showQuestion ? 'animate-fade-in' : 'opacity-0'}`}>
+              <p className="text-lg font-medium mb-4 leading-relaxed">
+                {currentQuestion.text}
+              </p>
+              {currentQuestion.isRedFlag && (
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emergency/10 text-emergency rounded-full text-sm mb-4">
+                  <AlertTriangle className="h-3 w-3" />
+                  Critical Question
+                </div>
+              )}
+            </div>
+            
+            {/* Answer Buttons */}
+            <div className={`grid grid-cols-2 gap-4 transition-all duration-500 ${showQuestion ? 'animate-scale-in' : 'opacity-0'}`}>
               <Button 
                 variant="outline" 
                 size="lg" 
                 onClick={() => handleAnswer(false)}
-                className="h-auto py-4"
+                className="h-auto py-6 transition-all duration-300 hover:scale-105 hover:bg-muted group"
               >
-                No
+                <div className="flex flex-col items-center gap-2">
+                  <XCircle className="h-6 w-6 text-muted-foreground group-hover:text-foreground" />
+                  <span>No</span>
+                </div>
               </Button>
               <Button 
                 size="lg" 
                 onClick={() => handleAnswer(true)}
-                className="h-auto py-4"
+                className="h-auto py-6 transition-all duration-300 hover:scale-105 group"
               >
-                Yes
+                <div className="flex flex-col items-center gap-2">
+                  <CheckCircle2 className="h-6 w-6" />
+                  <span>Yes</span>
+                </div>
               </Button>
+            </div>
+
+            {/* Progress Text */}
+            <div className="text-center text-sm text-muted-foreground">
+              {answeredQuestions} of {selectedSymptom.questions.length} questions answered
             </div>
           </CardContent>
         </Card>
@@ -348,8 +404,8 @@ const SymptomChecker: React.FC = () => {
 
     const getResultIcon = () => {
       switch (result.level) {
-        case "emergency": return <Phone className="h-8 w-8 text-emergency" />;
-        case "urgent": return <AlertTriangle className="h-8 w-8 text-warning" />;
+        case "emergency": return <Phone className="h-8 w-8 text-emergency animate-pulse-slow" />;
+        case "urgent": return <AlertTriangle className="h-8 w-8 text-warning animate-bounce-gentle" />;
         case "clinic": return <MapPin className="h-8 w-8 text-primary" />;
         case "selfcare": return <Home className="h-8 w-8 text-success" />;
       }
@@ -357,21 +413,25 @@ const SymptomChecker: React.FC = () => {
 
     return (
       <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-        <Card className={`w-full max-w-md border-2 ${getResultColor()}`}>
+        <Card className={`w-full max-w-md border-2 ${getResultColor()} animate-scale-in`}>
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
               {getResultIcon()}
             </div>
-            <CardTitle className="text-xl">{result.title}</CardTitle>
-            <CardDescription>{result.description}</CardDescription>
+            <CardTitle className="text-xl animate-fade-in">{result.title}</CardTitle>
+            <CardDescription className="animate-fade-in">{result.description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">Recommended Actions:</h3>
-              <ul className="space-y-1">
+            <div className="animate-fade-in">
+              <h3 className="font-medium mb-3">Recommended Actions:</h3>
+              <ul className="space-y-2">
                 {result.actions.map((action, index) => (
-                  <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                    <span className="text-primary mt-1">•</span>
+                  <li 
+                    key={index} 
+                    className="text-sm text-muted-foreground flex items-start gap-3 animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <span className="text-primary mt-1 font-bold">•</span>
                     {action}
                   </li>
                 ))}
@@ -381,7 +441,7 @@ const SymptomChecker: React.FC = () => {
             {result.level === "emergency" && (
               <Button 
                 onClick={handleEmergencyCall}
-                className="w-full bg-emergency hover:bg-emergency/90"
+                className="w-full bg-emergency hover:bg-emergency/90 transition-all duration-300 hover:scale-105 animate-pulse-slow"
                 size="lg"
               >
                 <Phone className="h-4 w-4 mr-2" />
@@ -393,14 +453,18 @@ const SymptomChecker: React.FC = () => {
               <Button 
                 onClick={handleMapsSearch}
                 variant="outline"
-                className="w-full"
+                className="w-full transition-all duration-300 hover:scale-105"
               >
                 <MapPin className="h-4 w-4 mr-2" />
                 Find Campus Clinic
               </Button>
             )}
             
-            <Button variant="secondary" onClick={handleRestart} className="w-full mt-4">
+            <Button 
+              variant="secondary" 
+              onClick={handleRestart} 
+              className="w-full mt-4 transition-all duration-300 hover:scale-105"
+            >
               <RotateCcw className="h-4 w-4 mr-2" />
               Start New Assessment
             </Button>
